@@ -28,7 +28,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $defaultRoute = Auth::user()->is_admin
+            ? route('dashboard', absolute: false)
+            : '/';
+
+        return redirect()->intended($defaultRoute);
     }
 
     /**
@@ -42,6 +46,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/login')->with('status', 'You have been logged out successfully.');
+        return redirect('/')->with('status', 'You have been logged out successfully.');
     }
 }

@@ -12,12 +12,17 @@
 
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- Fallback Alpine if build fails - remove later if stable -->
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
         <style>
             body {
                 font-family: 'Inter', sans-serif;
             }
+            [x-cloak] { display: none !important; }
         </style>
+        <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . \App\Models\Setting::get('favicon', 'favicon.ico')) }}">
     </head>
     <body class="antialiased bg-gray-50">
         
@@ -27,54 +32,80 @@
                 
                 <!-- Logo -->
                 <a href="/" class="flex items-center space-x-2">
-                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
+                    @if($logo = \App\Models\Setting::get('logo'))
+                        <img src="{{ asset('storage/' . $logo) }}" alt="Logo" class="h-10 w-auto rounded-xl">
+                    @else
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    @endif
                     <span class="text-xl font-bold text-gray-900">Car Booking</span>
                 </a>
 
                 <!-- Menu Items -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="/" class="text-gray-900 font-semibold hover:text-blue-600 transition-colors">Home</a>
-                    <a href="#about" class="text-gray-600 font-semibold hover:text-blue-600 transition-colors">About Us</a>
-                    <a href="#contact" class="text-gray-600 font-semibold hover:text-blue-600 transition-colors">Contact</a>
-                    <a href="#services" class="text-gray-600 font-semibold hover:text-blue-600 transition-colors">Services</a>
+                    @if(isset($headerMenu) && $headerMenu->items)
+                        @foreach($headerMenu->items as $item)
+                            <a href="{{ $item->url }}" 
+                               class="{{ Request::is(trim($item->url, '/')) ? 'text-blue-600' : 'text-gray-600' }} font-semibold hover:text-blue-600 transition-colors">
+                                {{ $item->label }}
+                            </a>
+                        @endforeach
+                    @else
+                        <a href="/" class="text-gray-900 font-semibold hover:text-blue-600 transition-colors">Home</a>
+                        <a href="/about-us" class="text-gray-600 font-semibold hover:text-blue-600 transition-colors">About Us</a>
+                        <a href="/services" class="text-gray-600 font-semibold hover:text-blue-600 transition-colors">Services</a>
+                        <a href="/blogs" class="text-gray-600 font-semibold hover:text-blue-600 transition-colors">Blogs</a>
+                        <a href="/contact" class="text-gray-600 font-semibold hover:text-blue-600 transition-colors">Contact</a>
+                    @endif
                 </div>
 
                 <!-- User Profile / Auth -->
                 <div class="flex items-center space-x-4">
                     @auth
-                        <!-- User Profile Dropdown -->
-                        <div class="relative">
-                            <button @click="profileOpen = !profileOpen" class="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors">
-                                <div class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                                    {{ substr(Auth::user()->name, 0, 1) }}
-                                </div>
-                                <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
+                        @if(Auth::user()->is_admin)
+                            <a href="{{ route('dashboard') }}" class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">Admin Panel</a>
+                        @else
+                            <div class="relative flex items-center space-x-3">
+                                <!-- Profile Button -->
+                                <a href="{{ route('user.dashboard') }}?tab=profile" class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                    Profile
+                                </a>
 
-                            <!-- Dropdown Menu -->
-                            <div x-show="profileOpen" @click.away="profileOpen = false" x-transition
-                                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                                <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    My Profile
-                                </a>
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    My Trips
-                                </a>
-                                <hr class="my-2">
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">
-                                        Logout
-                                    </button>
-                                </form>
+                                <!-- Dropdown Toggle -->
+                                <button @click="profileOpen = !profileOpen" class="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors border border-gray-100">
+                                    <div class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        {{ substr(Auth::user()->name, 0, 1) }}
+                                    </div>
+                                    <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <!-- Dropdown Menu -->
+                                <div x-show="profileOpen" @click.away="profileOpen = false" x-cloak x-transition
+                                    class="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[60]">
+                                    <div class="px-4 py-2 border-b border-gray-50 mb-1">
+                                        <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                                    </div>
+                                    <a href="{{ route('user.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                        My Dashboard
+                                    </a>
+                                    <a href="{{ route('user.dashboard') }}?tab=bookings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                        My Trips
+                                    </a>
+                                    <hr class="my-2 border-gray-100">
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                            Sign Out
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     @else
                         <a href="{{ route('login') }}" class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
                             Sign In
@@ -87,260 +118,306 @@
             </div>
         </nav>
 
-        <!-- Hero Section - Booking Panel -->
-        <section class="py-12 bg-gradient-to-b from-blue-50 to-white">
-            <div class="max-w-7xl mx-auto px-6">
+        <!-- Hero Section - Two Column Layout -->
+        <section id="booking-form" class="py-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-[calc(100vh-4rem)]">
+            <div class="max-w-7xl mx-auto px-6 h-full">
                 
-                <div class="text-center mb-8">
-                    <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-3">Book Your Ride</h1>
-                    <p class="text-xl text-gray-600">Choose your trip type and get started</p>
-                </div>
-
-                <!-- Booking Panel -->
-                <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 p-8" 
-                    x-data="{
-                        tripType: 'roundtrip',
-                        dropLocations: [1],
-                        pickupLocation: '',
-                        dropLocation1: '',
-                        pickupDate: '',
-                        pickupTime: '',
-                        returnDate: '',
-                        
-                        addDropLocation() {
-                            this.dropLocations.push(this.dropLocations.length + 1);
-                        },
-                        
-                        removeDropLocation(index) {
-                            if (this.dropLocations.length > 1) {
-                                this.dropLocations.splice(index, 1);
-                            }
-                        },
-                        
-                        searchRide() {
-                            if (!this.pickupLocation) {
-                                alert('Please enter pickup location');
-                                return;
-                            }
-                            
-                            if (!this.dropLocation1) {
-                                alert('Please enter drop location');
-                                return;
-                            }
-                            
-                            if (!this.pickupDate || !this.pickupTime) {
-                                alert('Please select pickup date and time');
-                                return;
-                            }
-                            
-                            if (this.tripType === 'roundtrip' && !this.returnDate) {
-                                alert('Please select return date');
-                                return;
-                            }
-                            
-                            alert('Searching for available rides...');
-                        }
-                    }">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center h-full">
                     
-                    <!-- Trip Type Tabs -->
-                    <div class="flex gap-3 mb-8">
-                        <button @click="tripType = 'oneway'" 
-                            :class="tripType === 'oneway' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
-                            class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
-                            One Way
-                        </button>
-                        <button @click="tripType = 'roundtrip'" 
-                            :class="tripType === 'roundtrip' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
-                            class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
-                            Round Trip
-                        </button>
-                        <button @click="tripType = 'rental'" 
-                            :class="tripType === 'rental' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
-                            class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
-                            Rental
-                        </button>
-                        <button @click="tripType = 'airport'" 
-                            :class="tripType === 'airport' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
-                            class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
-                            Airport
-                        </button>
+                    <!-- Left Column: Booking Form -->
+                    <div>
+                        <div class="mb-8">
+                            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-3">Book Your Ride</h1>
+                            <p class="text-xl text-gray-600">Choose your trip type and get started</p>
+                        </div>
+
+                        <!-- Booking Panel -->
+                        <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8" 
+                            x-data="{
+                                tripType: 'roundtrip',
+                                dropLocations: [1],
+                                pickupLocation: '',
+                                dropLocation1: '',
+                                pickupDate: '',
+                                pickupTime: '',
+                                returnDate: '',
+                                
+                                addDropLocation() {
+                                    this.dropLocations.push(this.dropLocations.length + 1);
+                                },
+                                
+                                removeDropLocation(index) {
+                                    if (this.dropLocations.length > 1) {
+                                        this.dropLocations.splice(index, 1);
+                                    }
+                                },
+                                
+                                searchRide() {
+                                    if (!this.pickupLocation) {
+                                        alert('Please enter pickup location');
+                                        return;
+                                    }
+                                    
+                                    if (!this.dropLocation1) {
+                                        alert('Please enter drop location');
+                                        return;
+                                    }
+                                    
+                                    if (this.tripType !== 'oneway' && (!this.pickupDate || !this.pickupTime)) {
+                                        alert('Please select pickup date and time');
+                                        return;
+                                    }
+                                    
+                                    if (this.tripType === 'roundtrip' && !this.returnDate) {
+                                        alert('Please select return date');
+                                        return;
+                                    }
+                                    
+                                    // alert('Searching for available rides...');
+                                    
+                                    // Construct query params
+                                    let params = new URLSearchParams({
+                                        trip_type: this.tripType,
+                                        pickup_location: this.pickupLocation,
+                                        pickup_date: this.pickupDate,
+                                        pickup_time: this.pickupTime
+                                    });
+
+                                    if (this.tripType === 'roundtrip') {
+                                        this.dropLocations.forEach((loc, index) => {
+                                            if (index === 0) params.append('drop_location', this.dropLocation1);
+                                            // Handle multiple drops if backend supports it later
+                                        });
+                                        params.append('return_date', this.returnDate);
+                                    } else if (this.tripType === 'oneway' || this.tripType === 'airport') {
+                                        params.append('drop_location', this.dropLocation1);
+                                    }
+                                    
+                                    window.location.href = '{{ route('user.booking.index') }}?' + params.toString();
+                                }
+                            }">
+                            
+                            <!-- Trip Type Tabs -->
+                            <div class="flex gap-3 mb-8">
+                                <button @click="tripType = 'oneway'" 
+                                    :class="tripType === 'oneway' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
+                                    class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
+                                    One Way
+                                </button>
+                                <button @click="tripType = 'roundtrip'" 
+                                    :class="tripType === 'roundtrip' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
+                                    class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
+                                    Round Trip
+                                </button>
+                                <button @click="tripType = 'rental'" 
+                                    :class="tripType === 'rental' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
+                                    class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
+                                    Rental
+                                </button>
+                                <button @click="tripType = 'airport'" 
+                                    :class="tripType === 'airport' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'"
+                                    class="px-6 py-2.5 rounded-full font-semibold transition-all text-sm">
+                                    Airport
+                                </button>
+                            </div>
+
+                            <!-- Form Fields -->
+                            <div class="space-y-5">
+                                
+                                <!-- ROUND TRIP FORM -->
+                                <div x-show="tripType === 'roundtrip'">
+                                    <!-- Pickup Location -->
+                                    <div class="mb-5">
+                                        <label for="pickup-location-rt" class="block text-sm font-bold text-gray-900 mb-2">Pickup Location</label>
+                                        <input type="text" id="pickup-location-rt" name="pickup_location" x-model="pickupLocation" placeholder="Enter a location"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+
+                                    <!-- Drop Off Locations -->
+                                    <template x-for="(loc, index) in dropLocations" :key="index">
+                                        <div class="mb-5">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <label class="text-sm font-bold text-gray-900">
+                                                    Drop Off Location <span x-text="loc"></span>
+                                                </label>
+                                                <div class="flex gap-2">
+                                                    <button type="button" @click="addDropLocation()" 
+                                                        class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                                        </svg>
+                                                    </button>
+                                                    <button type="button" @click="removeDropLocation(index)" 
+                                                        x-show="dropLocations.length > 1"
+                                                        class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors">
+                                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <input type="text" id="drop-location-rt" name="drop_location" x-model="dropLocation1" placeholder="Enter a location"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                    </template>
+
+                                    <!-- Pickup Date & Time -->
+                                    <div class="grid grid-cols-2 gap-4 mb-5">
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Date</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                                <input type="date" id="pickup-date-rt" name="pickup_date" x-model="pickupDate"
+                                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-900 mb-2">Select Time</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                <input type="time" id="pickup-time-rt" name="pickup_time" x-model="pickupTime"
+                                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Return Date -->
+                                    <div class="mb-5">
+                                        <label class="block text-sm font-bold text-gray-900 mb-2">Return Date</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <input type="date" id="return-date-rt" name="return_date" x-model="returnDate"
+                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ONE WAY & AIRPORT FORM -->
+                                <div x-show="tripType === 'oneway' || tripType === 'airport'">
+                                    <!-- Pickup Location -->
+                                    <div class="mb-5">
+                                        <label for="pickup-location-ow" class="block text-sm font-bold text-gray-900 mb-2">Pickup Location</label>
+                                        <input type="text" id="pickup-location-ow" name="pickup_location" x-model="pickupLocation" placeholder="Enter a location"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+
+                                    <!-- Drop Off Location -->
+                                    <div class="mb-5">
+                                        <label for="drop-location-ow" class="block text-sm font-bold text-gray-900 mb-2">Drop Off Location</label>
+                                        <input type="text" id="drop-location-ow" name="drop_location" x-model="dropLocation1" placeholder="Enter a location"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+
+                                    <!-- Pickup Date & Time -->
+                                    <template x-if="tripType === 'airport'">
+                                        <div class="grid grid-cols-2 gap-4 mb-5">
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Date</label>
+                                                <div class="relative">
+                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <input type="date" id="pickup-date-ow" name="pickup_date" x-model="pickupDate" placeholder="dd-mm-yyyy"
+                                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-900 mb-2">Select Time</label>
+                                                <div class="relative">
+                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                    </div>
+                                                    <input type="time" id="pickup-time-ow" name="pickup_time" x-model="pickupTime" placeholder="--:--"
+                                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- RENTAL FORM -->
+                                <div x-show="tripType === 'rental'">
+                                    <!-- City -->
+                                    <div class="mb-5">
+                                        <label for="city-rental" class="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">City</label>
+                                        <input type="text" id="city-rental" name="city" x-model="pickupLocation" placeholder="Enter a City or Airport"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+
+                                    <!-- Pickup Date & Time -->
+                                    <div class="grid grid-cols-2 gap-4 mb-5">
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Date</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                                <input type="date" id="pickup-date-rental" name="pickup_date" x-model="pickupDate"
+                                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-900 mb-2">Select Time</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                <input type="time" id="pickup-time-rental" name="pickup_time" x-model="pickupTime"
+                                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Search Button -->
+                                <button @click="searchRide()" 
+                                    class="w-full bg-black text-white py-4 rounded-lg font-bold text-base hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    Search
+                                </button>
+
+                            </div>
+
+                        </div>
                     </div>
 
-                    <!-- Form Fields -->
-                    <div class="space-y-5">
-                        
-                        <!-- ROUND TRIP FORM -->
-                        <div x-show="tripType === 'roundtrip'">
-                            <!-- Pickup Location -->
-                            <div class="mb-5">
-                                <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Location</label>
-                                <input type="text" x-model="pickupLocation" placeholder="Enter a location"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <!-- Drop Off Locations -->
-                            <template x-for="(loc, index) in dropLocations" :key="index">
-                                <div class="mb-5">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <label class="text-sm font-bold text-gray-900">
-                                            Drop Off Location <span x-text="loc"></span>
-                                        </label>
-                                        <div class="flex gap-2">
-                                            <button type="button" @click="addDropLocation()" 
-                                                class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                                </svg>
-                                            </button>
-                                            <button type="button" @click="removeDropLocation(index)" 
-                                                x-show="dropLocations.length > 1"
-                                                class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <input type="text" x-model="dropLocation1" placeholder="Enter a location"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                            </template>
-
-                            <!-- Pickup Date & Time -->
-                            <div class="grid grid-cols-2 gap-4 mb-5">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Date</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <input type="date" x-model="pickupDate"
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-900 mb-2">Select Time</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <input type="time" x-model="pickupTime"
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Return Date -->
-                            <div class="mb-5">
-                                <label class="block text-sm font-bold text-gray-900 mb-2">Return Date</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <input type="date" x-model="returnDate"
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                </div>
+                    <!-- Right Column: Illustration -->
+                    <div class="hidden lg:flex items-center justify-center">
+                        <div class="relative w-full">
+                            <!-- Professional Illustration: Girl with Luggage and Taxi -->
+                            <img src="{{ asset('images/hero-illustration.png') }}" 
+                                 alt="Woman with luggage standing next to a taxi cab" 
+                                 class="w-full h-auto drop-shadow-2xl rounded-2xl"
+                                 loading="lazy">
+                            
+                            <!-- Text Overlay -->
+                            <div class="absolute -bottom-8 left-0 right-0 text-center">
+                                <p class="text-2xl font-bold text-gray-800">Your Journey Starts Here</p>
+                                <p class="text-gray-600 mt-2">Safe, Comfortable & Reliable</p>
                             </div>
                         </div>
-
-                        <!-- ONE WAY & AIRPORT FORM -->
-                        <div x-show="tripType === 'oneway' || tripType === 'airport'">
-                            <!-- Pickup Location -->
-                            <div class="mb-5">
-                                <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Location</label>
-                                <input type="text" x-model="pickupLocation" placeholder="Enter a location"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <!-- Drop Off Location -->
-                            <div class="mb-5">
-                                <label class="block text-sm font-bold text-gray-900 mb-2">Drop Off Location</label>
-                                <input type="text" x-model="dropLocation1" placeholder="Enter a location"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <!-- Pickup Date & Time -->
-                            <div class="grid grid-cols-2 gap-4 mb-5">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Date</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <input type="date" x-model="pickupDate" placeholder="dd-mm-yyyy"
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-900 mb-2">Select Time</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <input type="time" x-model="pickupTime" placeholder="--:--"
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- RENTAL FORM -->
-                        <div x-show="tripType === 'rental'">
-                            <!-- City -->
-                            <div class="mb-5">
-                                <label class="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">City</label>
-                                <input type="text" x-model="pickupLocation" placeholder="Enter a City or Airport"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <!-- Pickup Date & Time -->
-                            <div class="grid grid-cols-2 gap-4 mb-5">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Date</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <input type="date" x-model="pickupDate"
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-900 mb-2">Select Time</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <input type="time" x-model="pickupTime"
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Search Button -->
-                        <button @click="searchRide()" 
-                            class="w-full bg-black text-white py-4 rounded-lg font-bold text-base hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Search
-                        </button>
-
                     </div>
 
                 </div>
@@ -348,12 +425,10 @@
             </div>
         </section>
 
+        @include('partials.home_sections')
+
         <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-8 mt-12">
-            <div class="max-w-7xl mx-auto px-6 text-center">
-                <p class="text-gray-400">&copy; {{ date('Y') }} Car Booking. All rights reserved.</p>
-            </div>
-        </footer>
+        @include('partials.footer')
 
     </body>
 </html>

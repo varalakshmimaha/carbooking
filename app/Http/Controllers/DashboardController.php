@@ -7,11 +7,22 @@ use App\Models\Customer;
 use App\Models\Driver;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        // Redirect non-admin users to user dashboard
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        if (!$user->is_admin) {
+            return redirect()->route('user.dashboard');
+        }
+
         $stats = [
             'total_trips' => Booking::count(),
             'total_drivers' => Driver::count(),

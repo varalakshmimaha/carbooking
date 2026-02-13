@@ -25,5 +25,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(DashboardDataSeeder::class);
         $this->call(MenuSeeder::class);
+        $this->call(VehicleTypeSeeder::class);
+        $this->call(PackageSeeder::class);
     }
 }

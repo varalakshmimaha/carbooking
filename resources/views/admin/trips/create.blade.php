@@ -51,13 +51,35 @@
                         </select>
                     </div>
 
-                    <!-- Cab Type -->
+                    <!-- Cab Type (Legacy) -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Cab Type</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cab Name (Legacy)</label>
                         <select name="cab_type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Select Cab Type</option>
                             @foreach($vehicleTypes as $type)
                                 <option value="{{ $type->name }}">{{ $type->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Requested Vehicle Class -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Requested Vehicle Class</label>
+                        <select name="vehicle_type_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Class</option>
+                            @foreach($vehicleTypes as $type)
+                                <option value="{{ $type->id }}">{{ $type->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Package -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Package</label>
+                        <select name="package_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Package</option>
+                            @foreach($packages as $pkg)
+                                <option value="{{ $pkg->id }}">{{ $pkg->name }}</option>
                             @endforeach
                         </select>
                     </div>

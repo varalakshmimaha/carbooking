@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'is_admin',
     ];
 
     /**
@@ -45,6 +46,19 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * Get bookings linked to this user via matching customer email/phone.
+     */
+    public function bookings()
+    {
+        $customerIds = Customer::where('email', $this->email)
+            ->orWhere('phone', $this->phone)
+            ->pluck('id');
+
+        return Booking::whereIn('customer_id', $customerIds);
     }
 }

@@ -13,7 +13,7 @@ class BookingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Booking::with(['customer', 'driver', 'vehicle']);
+        $query = Booking::with(['customer', 'driver', 'vehicle', 'vehicleType']);
 
         // Filter by Booking ID
         if ($request->filled('booking_id')) {
@@ -78,7 +78,8 @@ class BookingController extends Controller
         $customers = Customer::all();
         $drivers = Driver::where('status', 'active')->get();
         $vehicleTypes = VehicleType::all();
-        return view('admin.trips.create', compact('customers', 'drivers', 'vehicleTypes'));
+        $packages = \App\Models\Package::all();
+        return view('admin.trips.create', compact('customers', 'drivers', 'vehicleTypes', 'packages'));
     }
 
     public function store(Request $request)
@@ -96,6 +97,8 @@ class BookingController extends Controller
             'verification_status' => 'required',
             'cab_type' => 'nullable',
             'driver_id' => 'nullable|exists:drivers,id',
+            'vehicle_type_id' => 'nullable|exists:vehicle_types,id',
+            'package_id' => 'nullable|exists:packages,id',
         ]);
 
         if ($request->has('drop_locations')) {
@@ -123,7 +126,8 @@ class BookingController extends Controller
         $customers = Customer::all();
         $drivers = Driver::where('status', 'active')->get();
         $vehicleTypes = VehicleType::all();
-        return view('admin.trips.edit', compact('booking', 'customers', 'drivers', 'vehicleTypes'));
+        $packages = \App\Models\Package::all();
+        return view('admin.trips.edit', compact('booking', 'customers', 'drivers', 'vehicleTypes', 'packages'));
     }
 
     public function update(Request $request, $id)
@@ -142,8 +146,30 @@ class BookingController extends Controller
             'status' => 'required',
             'verification_status' => 'required',
             'cab_type' => 'nullable',
+            'vehicle_type_id' => 'nullable|exists:vehicle_types,id',
+            'package_id' => 'nullable|exists:packages,id',
             'driver_id' => 'nullable|exists:drivers,id',
+            'trip_start_otp' => 'nullable|string',
+            'trip_end_otp' => 'nullable|string',
+            'documents.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240', // 10MB max
         ]);
+
+        // OTPs
+        $validated['trip_start_otp'] = $request->trip_start_otp;
+        $validated['trip_end_otp'] = $request->trip_end_otp;
+
+        // Handle Documents Upload
+        if ($request->hasFile('documents')) {
+            $uploadedDocs = [];
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store('trip_documents', 'public');
+                $uploadedDocs[] = $path;
+            }
+            
+            // Merge with existing if any (assuming JSON column)
+            $existingDocs = is_array($booking->documents) ? $booking->documents : json_decode($booking->documents, true) ?? [];
+            $validated['documents'] = array_merge($existingDocs, $uploadedDocs);
+        }
 
         if ($request->has('drop_locations')) {
             $validated['drop_locations'] = $request->drop_locations;

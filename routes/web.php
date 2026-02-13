@@ -5,11 +5,15 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserDashboardController;
+use App\Http\Controllers\UserBookingController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Controllers\HomeController;
+
+Route::get('/', [HomeController::class, 'index']);
+Route::get('/packages', [\App\Http\Controllers\PackageController::class, 'index'])->name('packages.index');
+Route::get('/blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
 // Admin redirects
 Route::get('/admin', function () {
@@ -24,6 +28,23 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::get('/user/dashboard', [UserDashboardController::class, 'index'])
+    ->middleware('auth')
+    ->name('user.dashboard');
+
+// User Booking Flow
+Route::get('/user/book-now', [UserBookingController::class, 'index'])
+    ->middleware('auth')
+    ->name('user.booking.index');
+
+Route::post('/user/book-now', [UserBookingController::class, 'store'])
+    ->middleware('auth')
+    ->name('user.booking.store');
+
+Route::post('/user/payment/verify', [UserBookingController::class, 'paymentVerify'])
+    ->middleware('auth')
+    ->name('user.booking.payment.verify');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -34,6 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('menus', MenuController::class);
         Route::get('menus/{menu}/items', [MenuItemController::class, 'index'])->name('menus.items');
         Route::post('menus/{menu}/items', [MenuItemController::class, 'store'])->name('menus.items.store');
+        Route::post('menu-items/reorder', [MenuItemController::class, 'reorder'])->name('menu-items.reorder');
         Route::put('menu-items/{item}', [MenuItemController::class, 'update'])->name('menu-items.update');
         Route::delete('menu-items/{item}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
 
@@ -71,7 +93,34 @@ Route::middleware('auth')->group(function () {
         // Setting Management
         Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
         Route::post('settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+
+        // Page & Page Builder
+        Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
+        Route::get('pages/{page}/builder', [\App\Http\Controllers\Admin\PageBuilderController::class, 'show'])->name('pages.builder');
+        Route::post('pages/{page}/builder/sections', [\App\Http\Controllers\Admin\PageBuilderController::class, 'addSection'])->name('pages.builder.add');
+        Route::put('pages/sections/{section}', [\App\Http\Controllers\Admin\PageBuilderController::class, 'updateSection'])->name('pages.builder.update-section');
+        Route::post('pages/{page}/builder/reorder', [\App\Http\Controllers\Admin\PageBuilderController::class, 'reorderSections'])->name('pages.builder.reorder');
+        Route::get('pages/sections/{section}', [\App\Http\Controllers\Admin\PageBuilderController::class, 'getSection'])->name('pages.builder.get-section');
+        Route::delete('pages/sections/{section}', [\App\Http\Controllers\Admin\PageBuilderController::class, 'removeSection'])->name('pages.builder.remove-section');
+        // Website Content
+        Route::resource('services', \App\Http\Controllers\Admin\ServiceController::class);
+        
+        // Blog
+        Route::resource('blog-posts', \App\Http\Controllers\Admin\BlogPostController::class, ['names' => 'blog.posts']);
+        Route::resource('blog-categories', \App\Http\Controllers\Admin\BlogCategoryController::class);
+        Route::resource('blog-tags', \App\Http\Controllers\Admin\BlogTagController::class);
+
+        // Testimonials
+        Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class);
     });
 });
 
+
+
 require __DIR__.'/auth.php';
+
+Route::get('/test-menus', function () {
+    return view('test-menus');
+});
+
+Route::get('/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->name('pages.frontend.show');

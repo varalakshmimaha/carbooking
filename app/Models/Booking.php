@@ -29,4 +29,14 @@ class Booking extends Model
     {
         return $this->belongsTo(Vehicle::class);
     }
+
+    public function vehicleType()
+    {
+        return $this->belongsTo(VehicleType::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
+    }
 }
