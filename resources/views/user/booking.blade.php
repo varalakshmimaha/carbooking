@@ -74,6 +74,31 @@
 
                     <input type="hidden" name="trip_type" x-model="tripType">
 
+                    @guest
+                    <!-- Guest Contact Details -->
+                    <div class="mb-8 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Your Contact Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+                                <input type="text" name="name" value="{{ old('name') }}" required placeholder="Enter your full name"
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                                <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="Enter phone number" 
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                                <input type="email" name="email" value="{{ old('email') }}" required placeholder="Enter email address"
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">These details will be used for booking confirmation and driver communication.</p>
+                    </div>
+                    @endguest
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- Pickup Location -->
                         <div>

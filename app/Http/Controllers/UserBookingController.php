@@ -62,34 +62,50 @@ class UserBookingController extends Controller
 
     public function store(Request $request)
     {
-        // Basic validation
-        $validated = $request->validate([
+        // define rules
+        $rules = [
             'trip_type' => 'required|in:oneway,roundtrip,local,airport',
             'pickup_location' => 'required|string',
-            'drop_location' => 'nullable|string', // Nullable for local/hourly
+            'drop_location' => 'nullable|string', 
             'book_date' => 'required|date|after:now',
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
             'package_id' => 'nullable|exists:packages,id',
-            
-            // Optional estimation fields
             'estimated_distance' => 'nullable|numeric',
             'estimated_duration' => 'nullable|numeric',
             'estimated_amount' => 'nullable|numeric|min:0',
             'payment_method' => 'required|in:razorpay,cash',
-        ]);
+        ];
 
-        $user = Auth::user();
+        // Add guest validation
+        if (!Auth::check()) {
+            $rules['name'] = 'required|string|max:255';
+            $rules['email'] = 'required|email|max:255';
+            $rules['phone'] = 'required|string|max:20';
+        }
 
-        // Find or create customer record for this user
-        // Find or create customer record for this user using Phone as identifier
-        $customer = Customer::firstOrCreate(
-            ['phone' => $user->phone],
-            [
-                'name' => $user->name,
-                'email' => $user->email,
-                'address' => 'Not provided'
-            ]
-        );
+        $validated = $request->validate($rules);
+
+        // Handle Customer Creation
+        if (Auth::check()) {
+            $user = Auth::user();
+            $customer = Customer::firstOrCreate(
+                ['phone' => $user->phone],
+                [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'address' => 'Not provided'
+                ]
+            );
+        } else {
+            $customer = Customer::firstOrCreate(
+                ['phone' => $validated['phone']],
+                [
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'address' => 'Guest'
+                ]
+            );
+        }
 
         $vehicleType = VehicleType::find($validated['vehicle_type_id']);
 
@@ -164,11 +180,15 @@ class UserBookingController extends Controller
                     'isTestMode' => false
                 ]);
             } catch (\Exception $e) {
-                return redirect()->route('user.dashboard')->withErrors(['error' => 'Payment creation failed: ' . $e->getMessage()]);
+                return redirect()->back()->withErrors(['error' => 'Payment creation failed: ' . $e->getMessage()])->withInput();
             }
         }
 
-        return redirect()->route('user.dashboard', ['tab' => 'bookings'])->with('success', 'Booking request submitted successfully! Our team will contact you shortly.');
+        if (Auth::check()) {
+            return redirect()->route('user.dashboard', ['tab' => 'bookings'])->with('success', 'Booking request submitted successfully! Our team will contact you shortly.');
+        } 
+        
+        return redirect()->route('booking.success', $booking->id);
     }
 
     public function paymentVerify(Request $request)
@@ -210,9 +230,18 @@ class UserBookingController extends Controller
                 'transaction_id' => $request->razorpay_payment_id,
             ]);
             
-            return redirect()->route('user.dashboard', ['tab' => 'bookings'])->with('success', 'Payment successful! Your booking is confirmed.');
+            if (Auth::check()) {
+                return redirect()->route('user.dashboard', ['tab' => 'bookings'])->with('success', 'Payment successful! Your booking is confirmed.');
+            }
+            return redirect()->route('booking.success', $booking->id);
         } else {
-            return redirect()->route('user.dashboard')->withErrors(['error' => $error]);
+            return redirect()->route('user.booking.index')->withErrors(['error' => $error]);
         }
+    }
+
+    public function success($id)
+    {
+        $booking = Booking::with('vehicleType')->findOrFail($id);
+        return view('booking.success', compact('booking'));
     }
 }

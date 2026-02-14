@@ -34,16 +34,16 @@ Route::get('/user/dashboard', [UserDashboardController::class, 'index'])
 
 // User Booking Flow
 Route::get('/user/book-now', [UserBookingController::class, 'index'])
-    ->middleware('auth')
     ->name('user.booking.index');
 
 Route::post('/user/book-now', [UserBookingController::class, 'store'])
-    ->middleware('auth')
     ->name('user.booking.store');
 
 Route::post('/user/payment/verify', [UserBookingController::class, 'paymentVerify'])
-    ->middleware('auth')
     ->name('user.booking.payment.verify');
+
+Route::get('/booking/success/{booking}', [UserBookingController::class, 'success'])
+    ->name('booking.success');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

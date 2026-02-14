@@ -24,7 +24,11 @@
             Pay Now
         </button>
 
-        <a href="{{ route('user.dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700 underline">Cancel and Pay Later</a>
+        @auth
+            <a href="{{ route('user.dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700 underline">Cancel and Pay Later</a>
+        @else
+            <a href="{{ url('/') }}" class="text-sm text-gray-500 hover:text-gray-700 underline">Cancel / Back to Home</a>
+        @endauth
         
         <form action="{{ route('user.booking.payment.verify') }}" method="POST" id="payment-form">
             @csrf
