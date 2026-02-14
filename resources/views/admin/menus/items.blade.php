@@ -87,7 +87,7 @@
     </div>
 
     <!-- Edit Item Modal -->
-    <div id="edit-item-modal" x-data="{ open: false }" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    <div id="edit-item-modal" x-data="{ open: false }" x-show="open" x-on:open-edit-modal.window="open = true" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 transition-opacity" aria-hidden="true">
                 <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
@@ -147,7 +147,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     
     <script>
-        function openEditItemModal(id, label, type, url, parentId, targetBlank) {
+        window.openEditItemModal = function(id, label, type, url, parentId, targetBlank) {
+            // Debug alert to confirm function call
+            alert('Edit Modal Function Called'); 
+            
             const modal = document.getElementById('edit-item-modal');
             const form = document.getElementById('edit-item-form');
             
@@ -161,8 +164,14 @@
             document.getElementById('edit-item-parent').value = parentId || '';
             document.getElementById('edit-item-target').checked = targetBlank;
             
-            // Show modal using Alpine.js
-            modal.__x.$data.open = true;
+            // Show modal
+            window.dispatchEvent(new CustomEvent('open-edit-modal'));
+
+            if (modal._x_dataStack) {
+                modal._x_dataStack[0].open = true;
+            } else if (modal.__x) {
+                modal.__x.$data.open = true;
+            }
         }
 
         // Initialize SortableJS for drag and drop

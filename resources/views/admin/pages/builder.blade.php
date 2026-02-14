@@ -277,6 +277,21 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
                                     <textarea id="setting-content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">${settings.content || ''}</textarea>
                                 </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Section Image</label>
+                                    <input type="file" id="setting-image" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                    ${settings.image ? `<p class="mt-1 text-xs text-gray-500">Current Image: <a href="/storage/${settings.image}" target="_blank" class="text-blue-600 hover:underline">View</a></p>` : ''}
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Happy Customers</label>
+                                        <input type="text" id="setting-happy_customers" value="${settings.happy_customers || '5000+'}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Luxury Cars</label>
+                                        <input type="text" id="setting-luxury_cars" value="${settings.luxury_cars || '100+'}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">
+                                    </div>
+                                </div>
                             </div>
                         `;
                     } else if (type === 'contact_cta') {
@@ -357,21 +372,29 @@
         }
 
         function saveSettings() {
-            const settings = {};
+            const formData = new FormData();
             const inputs = document.querySelectorAll('#modal-content input, #modal-content textarea, #modal-content select');
             
             inputs.forEach(input => {
                 const key = input.id.replace('setting-', '');
-                settings[key] = input.value;
+                if (input.type === 'file') {
+                    if (input.files.length > 0) {
+                        formData.append(`settings[${key}]`, input.files[0]);
+                    }
+                } else {
+                    formData.append(`settings[${key}]`, input.value);
+                }
             });
 
+            // Spoof PUT method for Laravel
+            formData.append('_method', 'PUT');
+
             fetch(`/admin/pages/sections/${currentSectionId}`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ settings: settings })
+                body: formData
             })
             .then(res => res.json())
             .then(data => {

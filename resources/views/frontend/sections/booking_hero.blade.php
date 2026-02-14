@@ -21,6 +21,7 @@
                         pickupDate: '',
                         pickupTime: '',
                         returnDate: '',
+                        packageId: '',
                         
                         addDropLocation() {
                             this.dropLocations.push(this.dropLocations.length + 1);
@@ -38,7 +39,8 @@
                                 return;
                             }
                             
-                            if (!this.dropLocation1) {
+                            
+                            if (this.tripType !== 'rental' && !this.dropLocation1) {
                                 alert('Please enter drop location');
                                 return;
                             }
@@ -68,6 +70,8 @@
                                 params.append('return_date', this.returnDate);
                             } else if (this.tripType === 'oneway' || this.tripType === 'airport') {
                                 params.append('drop_location', this.dropLocation1);
+                            } else if (this.tripType === 'rental') {
+                                params.append('package_id', this.packageId);
                             }
                             
                             window.location.href = '{{ route('user.booking.index') }}?' + params.toString();
@@ -173,10 +177,24 @@
 
                         <!-- RENTAL FORM -->
                         <div x-show="tripType === 'rental'">
-                            <div class="mb-5">
-                                <label class="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">City</label>
-                                <input type="text" name="city" x-model="pickupLocation" placeholder="Enter a City or Airport"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">City</label>
+                                    <input type="text" name="city" x-model="pickupLocation" placeholder="Enter a City or Airport"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Select Package</label>
+                                    <select x-model="packageId" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                        <option value="">Select Duration / Distance</option>
+                                        @if(isset($data['packages']))
+                                            @foreach($data['packages'] as $pkg)
+                                                <option value="{{ $pkg->id }}">{{ $pkg->name }} ({{ $pkg->days }} Days)</option>
+                                            @endforeach
+                                        @endif
+                                        <option value="custom">Custom (Hourly)</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4 mb-5">
                                 <div>

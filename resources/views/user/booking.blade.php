@@ -16,8 +16,9 @@
             <!-- Booking Form -->
             <div class="p-8">
                 <form action="{{ route('user.booking.store') }}" method="POST" x-data="{ 
-                    tripType: '{{ request('trip_type', 'oneway') }}',
+                    tripType: '{{ request('package_id') ? 'local' : request('trip_type', 'oneway') }}',
                     vehicleType: '{{ request('vehicle_type_id', '') }}',
+                    packageId: '{{ request('package_id', '') }}',
                     pickup: '{{ request('pickup_location', '') }}',
                     drop: '{{ request('drop_location', '') }}',
                     date: '{{ request('pickup_date', '') && request('pickup_time', '') ? request('pickup_date').'T'.request('pickup_time') : '' }}',
@@ -94,7 +95,7 @@
                         <!-- Rental (Visible only for Rental) -->
                         <div x-show="tripType === 'local'">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Rental Package</label>
-                            <select name="package_id" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <select name="package_id" x-model="packageId" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                                 @foreach($packages as $pkg)
                                     <option value="{{ $pkg->id }}">{{ $pkg->name }} ({{ $pkg->days }} days)</option>
                                 @endforeach

@@ -44,16 +44,30 @@ class PageBuilderController extends Controller
         $validated = $request->validate([
             'is_visible' => 'sometimes|boolean',
             'settings' => 'sometimes|array',
+            'settings.image' => 'sometimes|image|max:2048', // Validate image if present
         ]);
 
         if ($request->has('is_visible')) {
             $section->is_visible = $request->is_visible;
         }
 
+        $settings = $section->settings ?? [];
+
         if ($request->has('settings')) {
-            $section->settings = array_merge($section->settings ?? [], $request->settings);
+            // Handle text fields
+            $newSettings = $request->except(['settings.image', '_method', '_token'])['settings'] ?? [];
+            if (is_array($newSettings)) {
+                $settings = array_merge($settings, $newSettings);
+            }
         }
 
+        // Handle File Upload
+        if ($request->hasFile('settings.image')) {
+            $path = $request->file('settings.image')->store('sections', 'public');
+            $settings['image'] = $path;
+        }
+
+        $section->settings = $settings;
         $section->save();
 
         return response()->json(['success' => true]);

@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\View::composer(['layouts.frontend', 'welcome', 'partials.footer'], function ($view) {
+        \Illuminate\Support\Facades\View::composer(['layouts.frontend', 'welcome', 'partials.footer', 'frontend.*'], function ($view) {
             $headerMenu = \App\Models\Menu::where('key', 'header')->with(['items' => function($query) {
                 $query->where('status', 'active')->orderBy('sort_order');
             }])->first();
