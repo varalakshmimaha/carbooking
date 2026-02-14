@@ -130,4 +130,6 @@ Route::get('/test-menus', function () {
     return view('test-menus');
 });
 
+Route::get('/service/{slug}', [\App\Http\Controllers\ServiceController::class, 'show'])->name('service.show');
+
 Route::get('/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->name('pages.frontend.show');

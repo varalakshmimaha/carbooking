@@ -20,7 +20,14 @@
                         @endif
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-3">{{ $service->name }}</h3>
-                    <p class="text-gray-500 leading-relaxed">{{ $service->short_description }}</p>
+                    <p class="text-gray-500 leading-relaxed mb-4">{{ $service->short_description }}</p>
+                    
+                    <a href="{{ route('service.show', $service->slug) }}" class="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+                        Read More
+                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
                 </div>
             @endforeach
         </div>
