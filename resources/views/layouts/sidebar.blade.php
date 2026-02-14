@@ -167,6 +167,14 @@
                     </svg>
                     <span class="font-medium">Testimonials</span>
                 </a>
+
+                {{-- Features / Why Choose Us --}}
+                <a href="{{ route('admin.features.index') }}" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg {{ request()->routeIs('admin.features.*') ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-slate-800 hover:text-white' }} transition-colors mb-1">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span class="font-medium">Why Choose Us</span>
+                </a>
             </div>
 
             <div>

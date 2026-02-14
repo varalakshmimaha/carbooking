@@ -28,6 +28,7 @@ class PageController extends Controller
         'how_we_work' => HowWeWorkResolver::class,
         'testimonials_list' => TestimonialsListResolver::class,
         'blogs_list' => BlogsListResolver::class,
+        'why_choose_us' => \App\PageBuilder\Resolvers\WhyChooseUsResolver::class,
     ];
 
     public function show($slug)

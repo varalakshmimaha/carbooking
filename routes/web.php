@@ -119,6 +119,9 @@ Route::middleware('auth')->group(function () {
 
         // User Management
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+
+        // Features (Why Choose Us)
+        Route::resource('features', \App\Http\Controllers\Admin\FeatureController::class);
     });
 });
 
