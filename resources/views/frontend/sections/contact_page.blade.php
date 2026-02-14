@@ -1,15 +1,14 @@
 <!-- Banner Section -->
-<div class="bg-gray-900 text-white py-20 relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-r from-blue-900 to-gray-900 opacity-90"></div>
-    <div class="relative max-w-7xl mx-auto px-6 z-10">
-        <h1 class="text-4xl lg:text-5xl font-bold mb-4">Contact Us</h1>
-        <div class="flex items-center text-sm font-medium text-gray-300">
+<div class="bg-gray-900 text-white py-24">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex items-center text-sm font-medium text-gray-400 mb-4">
             <a href="/" class="hover:text-white transition-colors">Home</a>
-            <svg class="w-4 h-4 mx-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-3 h-3 mx-3 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <span class="text-white">Contact</span>
+            <span class="text-indigo-400">Contact</span>
         </div>
+        <h1 class="text-4xl lg:text-5xl font-bold text-white">Contact Us</h1>
     </div>
 </div>
 
