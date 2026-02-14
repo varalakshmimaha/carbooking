@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'role',
         'is_admin',
     ];
 
@@ -48,6 +49,22 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
+    }
+    
+    /**
+     * Check if user has specific role
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Compatibility accessor for is_admin
+     */
+    public function getIsAdminAttribute(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin']) || ($this->attributes['is_admin'] ?? false);
     }
 
     /**

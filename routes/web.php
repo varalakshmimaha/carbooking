@@ -112,6 +112,9 @@ Route::middleware('auth')->group(function () {
 
         // Testimonials
         Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class);
+
+        // User Management
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
     });
 });
 
