@@ -16,6 +16,10 @@ Route::get('/packages', [\App\Http\Controllers\PackageController::class, 'index'
 Route::get('/blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
 // Admin redirects
+Route::get('/admin/login', function () {
+    return redirect()->route('login');
+});
+
 Route::get('/admin', function () {
     return redirect('/dashboard');
 })->middleware('auth');
