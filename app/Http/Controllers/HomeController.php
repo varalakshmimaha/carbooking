@@ -59,7 +59,9 @@ class HomeController extends Controller
         $servicesSections = $this->resolveSections($servicesPage);
         
         $packages = \App\Models\Package::where('status', 'active')->get();
-        return view('welcome', compact('aboutPage', 'servicesPage', 'aboutSections', 'servicesSections', 'headerMenu', 'footerCol1', 'footerCol2', 'footerCol3', 'packages'));
+        $services = \App\Models\Service::where('status', 'active')->take(6)->get();
+
+        return view('welcome', compact('aboutPage', 'servicesPage', 'aboutSections', 'servicesSections', 'headerMenu', 'footerCol1', 'footerCol2', 'footerCol3', 'packages', 'services'));
     }
 
     protected function resolveSections($page)
