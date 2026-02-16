@@ -20,6 +20,18 @@ class UserBookingController extends Controller
             return view('user.booking_results', compact('searchResults'));
         }
 
+        // 2. Checkout Flow (Vehicle Selected)
+        if ($request->has('vehicle_type_id')) {
+             $vehicleType = VehicleType::findOrFail($request->vehicle_type_id);
+             $package = $request->package_id ? Package::find($request->package_id) : null;
+             
+             // Calculate Advance (Mock logic: 10% of estimate or fixed 500)
+             $estimate = $request->estimated_amount ?? 0;
+             $advanceAmount = $estimate > 0 ? round($estimate * 0.10) : 500;
+
+             return view('user.checkout', compact('vehicleType', 'package', 'estimate', 'advanceAmount'));
+        }
+
         // 2. Default Loading (Manual selection) or Final Step (Vehicle selected)
         $vehicleTypes = VehicleType::where('status', 'active')->get();
         $packages = Package::where('status', 'active')->get();
@@ -54,6 +66,7 @@ class UserBookingController extends Controller
                 'type' => $type,
                 'estimate' => round($estimate),
                 'eta' => rand(5, 15) . ' mins',
+                'kms_included' => $request->trip_type == 'local' ? '80' : '100', // Default mocks
                 'features' => ['AC', '4 Seats', 'Luggage Space'] // Dummy features
             ];
         }

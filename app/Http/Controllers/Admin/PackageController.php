@@ -41,6 +41,7 @@ class PackageController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|unique:packages,name|max:255',
             'description' => 'required|string',
+            'type' => 'required|in:rental,airport',
             'amount' => 'required|numeric|min:0',
             'days' => 'required|integer|min:1',
         ]);
@@ -60,6 +61,7 @@ class PackageController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:packages,name,' . $package->id,
             'description' => 'required|string',
+            'type' => 'required|in:rental,airport',
             'amount' => 'required|numeric|min:0',
             'days' => 'required|integer|min:1',
             'status' => 'required|in:active,inactive',

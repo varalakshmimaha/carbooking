@@ -12,6 +12,9 @@
                 <h1 class="text-3xl font-bold">Book Your Ride</h1>
                 <p class="text-indigo-100 mt-2">Choose your trip type and get an instant estimate</p>
             </div>
+            
+            <!-- Map Container -->
+            <div id="map" class="w-full h-64 bg-gray-200"></div>
 
             <!-- Booking Form -->
             <div class="p-8">
@@ -25,6 +28,8 @@
                     fareEstimate: {{ request('estimated_amount', 0) }},
                     paymentMethod: 'razorpay',
                     
+                    packageRates: @json($packages->pluck('amount', 'id')),
+                    
                     updateFare() {
                         // Basic estimation logic (mock for now without Google Maps)
                         // In reality, this would call an API with distance
@@ -35,15 +40,24 @@
                         switch(this.tripType) {
                             case 'oneway': baseRate = 15; break; // per km
                             case 'roundtrip': baseRate = 12; break; // lower per km
-                            case 'local': baseRate = 1200; break; // fixed 4hr package
-                            case 'airport': baseRate = 800; break; // fixed drop
+                            case 'local': baseRate = 1200; break; // fixed 4hr package fallback
+                            case 'airport': baseRate = 800; break; // fixed drop fallback
                         }
                         
                         // Fake distance for demo
                         let cleaningFee = 50;
-                        if (this.tripType === 'local') this.fareEstimate = baseRate;
-                        else if (this.tripType === 'airport') this.fareEstimate = baseRate;
-                        else this.fareEstimate = (baseRate * 10) + cleaningFee; // Assume 10km trip
+                        
+                        if (this.tripType === 'local' || this.tripType === 'airport') {
+                            // Use Package Price if selected
+                            if (this.packageId && this.packageRates[this.packageId]) {
+                                this.fareEstimate = Math.round(this.packageRates[this.packageId]);
+                            } else {
+                                this.fareEstimate = baseRate;
+                            }
+                        }
+                        else {
+                            this.fareEstimate = (baseRate * 10) + cleaningFee; // Assume 10km trip
+                        }
                     }
                 }">
                     @csrf
@@ -125,7 +139,7 @@
                         <!-- Pickup Location -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Pickup Location</label>
-                            <input type="text" name="pickup_location" x-model="pickup" required
+                            <input type="text" id="pickup_location" name="pickup_location" x-model="pickup" required
                                 class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 placeholder="Enter city, hotel, or address">
                         </div>
@@ -133,7 +147,7 @@
                         <!-- Drop Location (Hidden for Rental) -->
                         <div x-show="tripType !== 'local'">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Drop Location</label>
-                            <input type="text" name="drop_location" x-model="drop" 
+                            <input type="text" id="drop_location" name="drop_location" x-model="drop" 
                                 :required="tripType !== 'local'"
                                 class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 placeholder="Enter destination">
@@ -142,13 +156,26 @@
                         <!-- Rental (Visible only for Rental) -->
                         <div x-show="tripType === 'local'">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Rental Package</label>
-                            <select name="package_id" x-model="packageId" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                @foreach($packages as $pkg)
+                            <select x-model="packageId" @change="updateFare()" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">Custom (4hrs / 40km)</option>
+                                @foreach($packages->where('type', '!=', 'airport') as $pkg)
                                     <option value="{{ $pkg->id }}">{{ $pkg->name }} ({{ $pkg->days }} days)</option>
                                 @endforeach
-                                <option value="">Custom (4hrs / 40km)</option>
                             </select>
                         </div>
+                        
+                        <!-- Airport (Visible only for Airport) -->
+                        <div x-show="tripType === 'airport'">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Airport Package</label>
+                            <select x-model="packageId" @change="updateFare()" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">standard Airport Drop</option>
+                                @foreach($packages->where('type', 'airport') as $pkg)
+                                    <option value="{{ $pkg->id }}">{{ $pkg->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <input type="hidden" name="package_id" x-model="packageId">
 
                         <!-- Date & Time -->
                         <div>
@@ -208,3 +235,88 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\Setting::get('google_maps_api_key', config('services.google.maps_api_key', 'YOUR_GOOGLE_MAPS_API_KEY')) }}&libraries=places&callback=initMap" async defer></script>
+<script>
+    let map, pickupAutocomplete, dropAutocomplete;
+    let markers = [];
+
+    function initMap() {
+        // Default to Bangalore (or any central location)
+        const defaultLocation = { lat: 12.9716, lng: 77.5946 };
+        
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: defaultLocation,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            disableDefaultUI: true,
+            zoomControl: true
+        });
+
+        // Initialize Places Autocomplete
+        const pickupInput = document.getElementById("pickup_location");
+        const dropInput = document.getElementById("drop_location");
+
+        if (pickupInput) {
+            pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput);
+            pickupAutocomplete.addListener("place_changed", () => {
+                const place = pickupAutocomplete.getPlace();
+                if (place.geometry) {
+                    map.panTo(place.geometry.location);
+                    map.setZoom(14);
+                    // Fetch nearby drivers
+                    fetchNearbyDrivers(place.geometry.location.lat(), place.geometry.location.lng());
+                    
+                    // Update AlpineJS model manually if needed, or rely on input event
+                    pickupInput.dispatchEvent(new Event('input')); 
+                }
+            });
+        }
+
+        if (dropInput) {
+            dropAutocomplete = new google.maps.places.Autocomplete(dropInput);
+        }
+        
+        // Initial fetch with default or current location
+        if (navigator.geolocation) {
+             navigator.geolocation.getCurrentPosition(
+                 (position) => {
+                     const pos = {
+                         lat: position.coords.latitude,
+                         lng: position.coords.longitude,
+                     };
+                     map.setCenter(pos);
+                     fetchNearbyDrivers(pos.lat, pos.lng);
+                 }
+             );
+        } else {
+             fetchNearbyDrivers(defaultLocation.lat, defaultLocation.lng);
+        }
+    }
+
+    function fetchNearbyDrivers(lat, lng) {
+        fetch(`{{ route('api.nearby-drivers') }}?lat=${lat}&lng=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                // Clear existing markers
+                markers.forEach(marker => marker.setMap(null));
+                markers = [];
+
+                data.forEach(driver => {
+                    const marker = new google.maps.Marker({
+                        position: { lat: driver.lat, lng: driver.lng },
+                        map: map,
+                        title: driver.name,
+                        icon: {
+                            url: driver.icon || "https://maps.google.com/mapfiles/kml/shapes/cabs.png", // Fallback icon
+                            scaledSize: new google.maps.Size(30, 30) 
+                        }
+                    });
+                    markers.push(marker);
+                });
+            })
+            .catch(error => console.error('Error fetching drivers:', error));
+    }
+</script>
+@endpush

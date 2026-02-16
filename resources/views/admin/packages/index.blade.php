@@ -6,6 +6,7 @@
         description: '',
         amount: '',
         days: '',
+        type: 'rental',
         status: 'active',
         isEdit: false,
 
@@ -15,6 +16,7 @@
             this.description = '';
             this.amount = '';
             this.days = '';
+            this.type = 'rental';
             this.status = 'active';
             this.addModalOpen = true;
         },
@@ -26,6 +28,7 @@
             this.description = pkg.description;
             this.amount = pkg.amount;
             this.days = pkg.days;
+            this.type = pkg.type || 'rental';
             this.status = pkg.status;
             this.addModalOpen = true;
         },
@@ -208,6 +211,15 @@
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Description <span class="text-red-500">*</span></label>
                                     <textarea name="description" x-model="description" required placeholder="Describe the package details..." rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium text-gray-900 transition-all"></textarea>
+                                </div>
+
+                                <!-- Type -->
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Package Type <span class="text-red-500">*</span></label>
+                                    <select name="type" x-model="type" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium text-gray-900 transition-all">
+                                        <option value="rental">Rental (Local)</option>
+                                        <option value="airport">Airport</option>
+                                    </select>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-6">

@@ -63,6 +63,58 @@
                 </div>
             </div>
 
+            <!-- Driver Status Summary -->
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Driver Status</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Online Drivers -->
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-medium text-green-100 uppercase tracking-wider">Online Drivers</p>
+                            <p class="text-3xl font-bold mt-1">{{ $stats['online_drivers'] }}</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-xl">
+                            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" /></svg>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-green-400 border-opacity-30">
+                        <p class="text-xs text-green-100">Drivers currently available</p>
+                    </div>
+                </div>
+                
+                <!-- Active Rides -->
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-medium text-blue-100 uppercase tracking-wider">Active Rides</p>
+                            <p class="text-3xl font-bold mt-1">{{ $stats['active_rides'] }}</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-xl">
+                           <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                    </div>
+                     <div class="mt-4 pt-4 border-t border-blue-400 border-opacity-30">
+                        <p class="text-xs text-blue-100">Trips currently in progress</p>
+                    </div>
+                </div>
+
+                <!-- Offline Drivers -->
+                <div class="bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-medium text-gray-100 uppercase tracking-wider">Offline Drivers</p>
+                            <p class="text-3xl font-bold mt-1">{{ $stats['total_drivers'] - $stats['online_drivers'] }}</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 p-3 rounded-xl">
+                            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                        </div>
+                    </div>
+                     <div class="mt-4 pt-4 border-t border-gray-400 border-opacity-30">
+                        <p class="text-xs text-gray-100">Drivers currently unavailable</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Upcoming Bookings Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-6 border-b border-gray-100 flex justify-between items-center">

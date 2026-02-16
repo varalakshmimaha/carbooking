@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\HasApiTokens;
 
-class Driver extends Model
+class Driver extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'driver_code',
@@ -21,12 +23,20 @@ class Driver extends Model
         'wallet_amount',
         'password',
         'verification_status',
-        'status', // fallback if needed
-        'license_number'
+        'status',
+        'license_number',
+        'latitude',
+        'longitude',
+        'is_online',
+        'current_location_address'
     ];
 
     protected $hidden = [
         'password',
+    ];
+
+    protected $casts = [
+        'is_online' => 'boolean',
     ];
 
     public function documents()

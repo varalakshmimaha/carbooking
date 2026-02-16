@@ -62,8 +62,8 @@
 
                         <!-- Chassis Number -->
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Chassis Number <span class="text-red-500">*</span></label>
-                            <input type="text" name="chassis_number" required value="{{ old('chassis_number') }}" placeholder="Enter Chassis Number" class="w-full border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Chassis Number <span class="text-gray-400 font-normal">(Optional)</span></label>
+                            <input type="text" name="chassis_number" value="{{ old('chassis_number') }}" placeholder="Enter Chassis Number" class="w-full border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
                         <!-- Cab Color -->

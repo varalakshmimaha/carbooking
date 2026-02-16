@@ -11,6 +11,8 @@ class Booking extends Model
     protected $casts = [
         'book_date' => 'datetime',
         'end_date' => 'datetime',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
         'drop_locations' => 'array',
         'amount' => 'decimal:2',
     ];

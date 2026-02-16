@@ -23,9 +23,16 @@ class DashboardController extends Controller
             return redirect()->route('user.dashboard');
         }
 
+        $onlineDrivers = Driver::where('status', 'active')->where('is_online', true)->count();
+        
+        // Drivers in active rides (status 'Running')
+        $activeRidesCount = Booking::where('status', 'Running')->count();
+
         $stats = [
             'total_trips' => Booking::count(),
             'total_drivers' => Driver::count(),
+            'online_drivers' => $onlineDrivers,
+            'active_rides' => $activeRidesCount,
             'total_vehicles' => Vehicle::count(),
             'total_customers' => Customer::count(),
         ];
@@ -37,8 +44,10 @@ class DashboardController extends Controller
             ->paginate(5);
 
         $runningBookings = Booking::with(['customer', 'driver', 'vehicle'])
-            ->where('status', 'Confirmed')
-            ->whereDate('book_date', now()->toDateString())
+            ->where('status', 'Running') // Show only running here
+            ->orWhere(function($q) {
+                $q->where('status', 'Confirmed')->whereDate('book_date', now()->toDateString());
+            })
             ->orderBy('book_date', 'desc')
             ->get();
 

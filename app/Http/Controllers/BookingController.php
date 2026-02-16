@@ -31,8 +31,9 @@ class BookingController extends Controller
         }
 
         $bookings = $query->latest()->paginate(15);
+        $drivers = Driver::where('status', 'active')->get();
         
-        return view('admin.trips.index', compact('bookings'));
+        return view('admin.trips.index', compact('bookings', 'drivers'));
     }
 
     public function export()
@@ -186,5 +187,21 @@ class BookingController extends Controller
         $booking->delete();
 
         return redirect()->route('admin.trips.index')->with('success', 'Trip Deleted Successfully');
+    }
+
+    public function assignDriver(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+        
+        $request->validate([
+            'driver_id' => 'required|exists:drivers,id',
+        ]);
+
+        $booking->update([
+            'driver_id' => $request->driver_id,
+            'status' => 'Confirmed', // Auto confirm when driver is assigned
+        ]);
+
+        return redirect()->back()->with('success', 'Driver assigned successfully.');
     }
 }

@@ -59,20 +59,45 @@
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-900">{{ $result['type']->name }}</h3>
-                            <p class="text-gray-500 text-sm">{{ $result['type']->seating_capacity }} Seater</p>
+                            <h3 class="text-xl font-bold text-gray-900">{{ $result['type']->name }} <span class="text-sm font-normal text-gray-500">({{ $result['type']->category ?? 'Standard' }})</span></h3>
+                            <p class="text-gray-500 text-sm">{{ $result['type']->seating_capacity }} Seater • {{ $result['type']->model_year }}</p>
                         </div>
                         <div class="text-right">
-                            <span class="block text-2xl font-bold text-gray-900">₹{{ $result['estimate'] }}</span>
-                            <span class="text-xs text-gray-500">Estimated</span>
+                            <span class="block text-2xl font-bold text-gray-900 text-red-600">₹{{ $result['estimate'] }}</span>
+                            <span class="text-xs text-gray-500"> / Up to {{ $result['kms_included'] }} Km</span>
                         </div>
                     </div>
 
-                    <!-- Features -->
-                    <div class="flex flex-wrap gap-2 mb-6">
-                        @foreach($result['features'] as $feature)
-                            <span class="bg-gray-50 text-gray-600 text-xs px-2 py-1 rounded border border-gray-200">{{ $feature }}</span>
-                        @endforeach
+                    <!-- Detailed Info List -->
+                    <div class="space-y-2 mb-6 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Category :</span>
+                            <span class="font-medium text-gray-900 capitalize">{{ request('trip_type') == 'local' ? 'Rental' : request('trip_type') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Advance Amount :</span>
+                            <span class="font-bold text-gray-900">₹{{ round($result['estimate'] * 0.25) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Features & Specs -->
+                    <div class="flex flex-wrap items-center gap-4 mb-6 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
+                        <div class="flex items-center">
+                             <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                             {{ $result['type']->transmission }}
+                        </div>
+                         <div class="flex items-center">
+                             <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                             {{ $result['type']->fuel_type }}
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            {{ $result['type']->seating_capacity }} Persons
+                        </div>
+                         <div class="flex items-center">
+                            <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            {{ $result['type']->model_year }}
+                        </div>
                     </div>
 
                     <!-- Book Button -->
@@ -83,6 +108,7 @@
                         <input type="hidden" name="drop_location" value="{{ request('drop_location') }}">
                         <input type="hidden" name="pickup_date" value="{{ request('pickup_date') }}">
                         <input type="hidden" name="pickup_time" value="{{ request('pickup_time') }}">
+                        <input type="hidden" name="package_id" value="{{ request('package_id') }}">
                         
                         <!-- Select Vehicle -->
                         <input type="hidden" name="vehicle_type_id" value="{{ $result['type']->id }}">

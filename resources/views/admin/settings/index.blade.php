@@ -22,6 +22,7 @@
                         { id: 'company', label: 'Company Settings', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
                         { id: 'social', label: 'Social Media', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
                         { id: 'email', label: 'Email Settings', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                        { id: 'google_map', label: 'Google Map', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
                         { id: 'password', label: 'Change Password', icon: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z' }
                     ]">
                         <button 
@@ -267,6 +268,24 @@
                         </div>
                         <div class="pt-8 border-t border-gray-50 flex justify-end">
                             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-200">Save Email Settings</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Google Map Settings -->
+                <div x-show="activeTab === 'google_map'">
+                    <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-8">
+                        @csrf
+                        <input type="hidden" name="group" value="google_map">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Google Maps API Key</label>
+                                <input type="text" name="google_maps_api_key" value="{{ $settings['google_map']['google_maps_api_key'] ?? '' }}" class="w-full border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="AIza...">
+                                <p class="text-xs text-gray-500 mt-1">Required for map display, autocomplete, and distance calculations on the booking page.</p>
+                            </div>
+                        </div>
+                        <div class="pt-8 border-t border-gray-50 flex justify-end">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-200">Save Google Map Settings</button>
                         </div>
                     </form>
                 </div>

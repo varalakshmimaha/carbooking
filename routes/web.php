@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 
 Route::get('/', [HomeController::class, 'index']);
+Route::get('/api/nearby-drivers', [\App\Http\Controllers\MapController::class, 'nearbyDrivers'])->name('api.nearby-drivers');
 Route::get('/packages', [\App\Http\Controllers\PackageController::class, 'index'])->name('packages.index');
 Route::get('/blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
@@ -66,6 +67,7 @@ Route::middleware('auth')->group(function () {
         // Trip Management
         Route::get('trips/export', [BookingController::class, 'export'])->name('trips.export');
         Route::resource('trips', BookingController::class);
+        Route::patch('trips/{trip}/assign-driver', [BookingController::class, 'assignDriver'])->name('trips.assign-driver');
 
         // Driver Management
         Route::resource('drivers', \App\Http\Controllers\Admin\DriverController::class);
@@ -136,3 +138,25 @@ Route::get('/test-menus', function () {
 Route::get('/service/{slug}', [\App\Http\Controllers\ServiceController::class, 'show'])->name('service.show');
 
 Route::get('/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->name('pages.frontend.show');
+
+// Driver Routes
+Route::prefix('driver')->name('driver.')->group(function () {
+    Route::get('/login', [App\Http\Controllers\Driver\Auth\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [App\Http\Controllers\Driver\Auth\LoginController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [App\Http\Controllers\Driver\Auth\LoginController::class, 'logout'])->name('logout');
+
+    Route::middleware('auth:driver')->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\Driver\DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/status/toggle', [App\Http\Controllers\Driver\DashboardController::class, 'toggleStatus'])->name('toggle-status');
+        
+        // Trips
+        Route::get('/trips', [App\Http\Controllers\Driver\TripController::class, 'index'])->name('trips.index');
+        Route::get('/trips/{id}', [App\Http\Controllers\Driver\TripController::class, 'show'])->name('trips.show');
+        Route::post('/trips/{id}/start', [App\Http\Controllers\Driver\TripController::class, 'startTrip'])->name('trips.start');
+        Route::post('/trips/{id}/complete', [App\Http\Controllers\Driver\TripController::class, 'completeTrip'])->name('trips.complete');
+
+        // Profile
+        Route::get('/profile', [App\Http\Controllers\Driver\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [App\Http\Controllers\Driver\ProfileController::class, 'update'])->name('profile.update');
+    });
+});
